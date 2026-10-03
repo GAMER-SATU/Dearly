@@ -85,13 +85,13 @@ export const PolaroidCollagePage: React.FC<PolaroidCollagePageProps> = ({
         className={`relative z-10 pr-12 ${isReadOnly ? "" : "cursor-pointer group"}`}
         title={isReadOnly ? undefined : "Click to edit title and note"}
       >
-        <h2 className={`font-serif-dearly text-xl sm:text-2xl text-[#3b1c21] font-semibold tracking-tight leading-tight ${
+        <h2 className={`font-serif-dearly text-2xl sm:text-3xl text-[#3b1c21] font-semibold tracking-tight leading-tight ${
           isReadOnly ? "" : "group-hover:text-[#9e2a2b]"
         } transition-colors`}>
           {data.title}
         </h2>
         {data.note && (
-          <p className="font-handwriting text-base text-[#786154] truncate mt-0.5">
+          <p className="font-handwriting text-lg sm:text-base text-[#786154] truncate mt-0.5">
             &quot;{data.note}&quot;
           </p>
         )}
@@ -197,7 +197,7 @@ export const PolaroidCollagePage: React.FC<PolaroidCollagePageProps> = ({
                     </div>
 
                     {/* Handwritten Caption below photo */}
-                    <p className="font-handwriting text-[11px] sm:text-xs text-center text-[#382821] mt-0.5 truncate px-0.5">
+                    <p className="font-handwriting text-xs sm:text-sm text-center text-[#382821] mt-0.5 truncate px-0.5 font-medium">
                       {polaroid.caption || `Snapshot #${index + 1}`}
                     </p>
                   </div>

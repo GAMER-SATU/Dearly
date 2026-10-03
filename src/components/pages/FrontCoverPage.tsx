@@ -66,7 +66,7 @@ export const FrontCoverPage: React.FC<FrontCoverPageProps> = ({
       {/* Bottom Dedication (Handwritten Script) */}
       <div className="relative z-10 text-center px-1">
         <div className="bg-[#1f060a]/65 backdrop-blur-[2px] px-3.5 py-2 rounded-md border border-[#d4af37]/30 inline-block w-full max-w-xs shadow-md">
-          <p className="font-handwriting text-lg sm:text-xl text-[#fff5e0] leading-snug tracking-wide">
+          <p className="font-handwriting text-xl sm:text-2xl text-[#fff5e0] leading-snug tracking-wide">
             &quot;{data.dedication}&quot;
           </p>
         </div>

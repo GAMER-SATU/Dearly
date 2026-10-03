@@ -31,7 +31,7 @@ export const BackCoverPage: React.FC<BackCoverPageProps> = ({
 
       {/* Centerpiece: Closing Note, Signature & Wax Seal */}
       <div className="relative z-10 my-auto text-center flex flex-col items-center px-4">
-        <p className="font-serif-dearly italic text-base sm:text-lg text-[#edd5ab] leading-relaxed mb-4 font-normal max-w-sm drop-shadow-xs">
+        <p className="font-serif-dearly italic text-lg sm:text-xl text-[#edd5ab] leading-relaxed mb-4 font-normal max-w-sm drop-shadow-xs">
           &quot;{data.closingQuote}&quot;
         </p>
 
@@ -64,7 +64,7 @@ export const BackCoverPage: React.FC<BackCoverPageProps> = ({
                 </span>
                 <Sparkles className="w-3 h-3 text-[#d4af37]" />
               </div>
-              <p className="font-handwriting text-base text-[#fff5e0] leading-snug">
+              <p className="font-handwriting text-lg sm:text-xl text-[#fff5e0] leading-snug">
                 {data.secretMessage}
               </p>
             </div>
@@ -74,7 +74,7 @@ export const BackCoverPage: React.FC<BackCoverPageProps> = ({
 
       {/* Footer */}
       <div className="relative z-10 flex justify-between items-center text-[11px] text-[#d8b577] font-serif-dearly pt-2 opacity-90">
-        <span className="italic font-handwriting text-base text-[#f5d574] flex items-center gap-1">
+        <span className="italic font-handwriting text-lg text-[#f5d574] flex items-center gap-1">
           Forever Dearly <Heart className="w-3.5 h-3.5 fill-current inline" />
         </span>
         <span className="font-serif-dearly uppercase tracking-widest text-[9px] text-[#e8cda2]">

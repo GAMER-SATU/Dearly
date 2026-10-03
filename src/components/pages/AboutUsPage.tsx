@@ -96,13 +96,13 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
         className={`relative z-10 pr-14 ${isReadOnly ? "" : "cursor-pointer group"}`}
         title={isReadOnly ? undefined : "Click to edit title and subtitle"}
       >
-        <h2 className={`font-serif-dearly text-xl sm:text-2xl text-[#3b1c21] font-semibold tracking-tight leading-tight ${
+        <h2 className={`font-serif-dearly text-2xl sm:text-3xl text-[#3b1c21] font-semibold tracking-tight leading-tight ${
           isReadOnly ? "" : "group-hover:text-[#9e2a2b]"
         } transition-colors`}>
           {data.title}
         </h2>
         {data.subtitle && (
-          <p className="font-serif-dearly italic text-xs text-[#7e6758] truncate mt-0.5">
+          <p className="font-serif-dearly italic text-sm sm:text-xs text-[#7e6758] truncate mt-0.5">
             {data.subtitle}
           </p>
         )}
@@ -203,15 +203,15 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
           {/* Subtle Quote Banner */}
           {data.storyQuote && (
             <div className="border-l-2 border-[#9e2a2b]/70 pl-2.5 mb-2">
-              <p className="font-serif-dearly italic text-xs text-[#583f32] leading-snug">
+              <p className="font-serif-dearly italic text-sm sm:text-xs text-[#583f32] leading-snug">
                 {data.storyQuote}
               </p>
             </div>
           )}
 
           {/* Heartfelt Story Paragraph */}
-          <div className="overflow-y-auto max-h-[160px] sm:max-h-[180px] pr-1">
-            <p className="font-handwriting text-base sm:text-lg leading-[24px] sm:leading-[27px] text-[#2c201a] whitespace-pre-line">
+          <div className="overflow-y-auto max-h-[190px] sm:max-h-[210px] pr-1">
+            <p className="font-handwriting text-lg sm:text-xl leading-[28px] sm:leading-[32px] text-[#2c201a] whitespace-pre-line">
               {storyText}
             </p>
           </div>
@@ -219,7 +219,7 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
           {/* Handwritten Postscript Note */}
           {data.handwrittenNote && (
             <div className="border-t border-[#ebdccb]/70 pt-1.5 mt-2 flex items-center justify-between">
-              <p className="font-handwriting text-xs sm:text-sm text-[#9e2a2b] truncate">
+              <p className="font-handwriting text-sm sm:text-base text-[#9e2a2b] truncate font-medium">
                 {data.handwrittenNote}
               </p>
               {!isReadOnly && (
