@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100" fill="none">
+  <defs>
+    <filter id="starGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="1" dy="2" stdDeviation="2" flood-color="#8a6d1c" flood-opacity="0.3" />
+    </filter>
+  </defs>
+  <g filter="url(#starGlow)">
+    <!-- Main 4-point star -->
+    <path d="M50 10 Q 50 50, 90 50 Q 50 50, 50 90 Q 50 50, 10 50 Q 50 50, 50 10 Z" fill="#d4af37" />
+    <path d="M50 25 Q 50 50, 75 50 Q 50 50, 50 75 Q 50 50, 25 50 Q 50 50, 50 25 Z" fill="#fff3c4" opacity="0.8" />
+    
+    <!-- Mini sparkle 1 -->
+    <path d="M80 18 Q 80 28, 90 28 Q 80 28, 80 38 Q 80 28, 70 28 Q 80 28, 80 18 Z" fill="#c49b27" />
+    <!-- Mini sparkle 2 -->
+    <path d="M22 68 Q 22 76, 30 76 Q 22 76, 22 84 Q 22 76, 14 76 Q 22 76, 22 68 Z" fill="#e5c158" />
+  </g>
+</svg>

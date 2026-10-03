@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 70" width="120" height="70" fill="none">
+  <defs>
+    <filter id="ticketShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="1" dy="2" stdDeviation="1.5" flood-color="#000000" flood-opacity="0.2" />
+    </filter>
+  </defs>
+  <g filter="url(#ticketShadow)">
+    <path d="M 6 6 L 114 6 A 6 6 0 0 1 114 64 L 6 64 A 6 6 0 0 1 6 6 Z" fill="#eedcc8" stroke="#8c735d" stroke-width="1.2" />
+    <!-- Perforated vertical line -->
+    <line x1="88" y1="6" x2="88" y2="64" stroke="#8c735d" stroke-width="1" stroke-dasharray="3 3" />
+    <text x="46" y="28" font-family="serif" font-size="10" font-weight="bold" fill="#691a24" text-anchor="middle" letter-spacing="1">ADMIT ONE</text>
+    <text x="46" y="44" font-family="serif" font-size="7" fill="#8c735d" text-anchor="middle" letter-spacing="0.5">SWEET MEMORY</text>
+    <text x="46" y="55" font-family="monospace" font-size="6" fill="#a48c77" text-anchor="middle">№ 10242024</text>
+    <text x="101" y="38" font-family="monospace" font-size="7" font-weight="bold" fill="#691a24" text-anchor="middle" transform="rotate(90 101 38)">DEARLY</text>
+  </g>
+</svg>

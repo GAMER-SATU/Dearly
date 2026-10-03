@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 90" width="200" height="90" fill="none">
+  <defs>
+    <filter id="scrapShadow" x="-10%" y="-10%" width="125%" height="125%">
+      <feDropShadow dx="2" dy="3" stdDeviation="2.5" flood-color="#2a1f18" flood-opacity="0.3" />
+    </filter>
+  </defs>
+  <g filter="url(#scrapShadow)" transform="rotate(-3 100 45)">
+    <!-- Torn paper scrap -->
+    <path
+      d="M10 12 Q 25 8, 50 11 T 110 9 T 170 12 T 192 10 Q 190 28, 193 50 T 190 78 Q 165 82, 120 79 T 60 82 T 8 78 Q 12 55, 9 32 Z"
+      fill="#e8dac8"
+      stroke="#c2b09a"
+      stroke-width="1.2"
+    />
+    <!-- Paper texture grain / lines -->
+    <line x1="20" y1="28" x2="180" y2="28" stroke="#d5c4af" stroke-width="0.7" opacity="0.6" />
+    <line x1="20" y1="46" x2="180" y2="46" stroke="#d5c4af" stroke-width="0.7" opacity="0.6" />
+    <line x1="20" y1="64" x2="180" y2="64" stroke="#d5c4af" stroke-width="0.7" opacity="0.6" />
+    
+    <!-- Typewriter text -->
+    <text x="100" y="32" font-family="'Courier New', Courier, monospace" font-size="12.5" font-weight="bold" fill="#382b24" text-anchor="middle" letter-spacing="0.2">And suddenly,</text>
+    <text x="100" y="49" font-family="'Courier New', Courier, monospace" font-size="12.5" font-weight="bold" fill="#382b24" text-anchor="middle" letter-spacing="0.2">all the love songs</text>
+    <text x="100" y="66" font-family="'Courier New', Courier, monospace" font-size="12.5" font-weight="bold" fill="#382b24" text-anchor="middle" letter-spacing="0.2">were about you</text>
+  </g>
+</svg>

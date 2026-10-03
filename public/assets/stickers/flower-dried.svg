@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 150" width="100" height="150" fill="none">
+  <defs>
+    <filter id="flowerShadow" x="-20%" y="-10%" width="140%" height="130%">
+      <feDropShadow dx="1" dy="2" stdDeviation="2" flood-color="#302010" flood-opacity="0.2" />
+    </filter>
+  </defs>
+  <g filter="url(#flowerShadow)">
+    <!-- Stem -->
+    <path d="M50 140 Q 48 90, 52 40" stroke="#756247" stroke-width="2.5" stroke-linecap="round" />
+    <path d="M50 110 Q 35 100, 30 85" stroke="#756247" stroke-width="1.8" stroke-linecap="round" />
+    <path d="M51 85 Q 65 75, 72 62" stroke="#756247" stroke-width="1.8" stroke-linecap="round" />
+    
+    <!-- Leaves / Dried Petals -->
+    <path d="M30 85 C 22 75, 30 65, 40 75 C 45 80, 36 90, 30 85 Z" fill="#938165" opacity="0.85" />
+    <path d="M72 62 C 80 50, 70 42, 62 52 C 58 58, 67 68, 72 62 Z" fill="#8f7b5e" opacity="0.85" />
+    
+    <!-- Flower head / blossom (dried muted rose/ochre) -->
+    <ellipse cx="52" cy="38" rx="14" ry="10" fill="#a46d6d" opacity="0.75" />
+    <ellipse cx="46" cy="32" rx="11" ry="8" fill="#bc7c7c" opacity="0.75" />
+    <ellipse cx="58" cy="30" rx="10" ry="9" fill="#945858" opacity="0.75" />
+    <ellipse cx="53" cy="24" rx="8" ry="7" fill="#6d3d3d" opacity="0.85" />
+    <circle cx="52" cy="33" r="4" fill="#c49e5d" opacity="0.9" />
+  </g>
+</svg>

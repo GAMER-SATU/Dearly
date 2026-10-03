@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 120" width="50" height="120" fill="none">
+  <defs>
+    <linearGradient id="brassGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fff0bd" />
+      <stop offset="30%" stop-color="#d4af37" />
+      <stop offset="70%" stop-color="#aa820a" />
+      <stop offset="100%" stop-color="#694e02" />
+    </linearGradient>
+    <filter id="clipShadow" x="-30%" y="-10%" width="160%" height="130%">
+      <feDropShadow dx="2" dy="3" stdDeviation="2" flood-color="#000000" flood-opacity="0.3" />
+    </filter>
+  </defs>
+  <path d="M 16 95 L 16 28 C 16 16, 34 16, 34 28 L 34 85 C 34 94, 22 94, 22 85 L 22 36 C 22 30, 28 30, 28 36 L 28 80" 
+        stroke="url(#brassGrad)" 
+        stroke-width="4.5" 
+        stroke-linecap="round" 
+        filter="url(#clipShadow)" />
+</svg>

@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 120" width="100" height="120">
+  <defs>
+    <filter id="stampShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="1" dy="2" stdDeviation="2" flood-color="#000000" flood-opacity="0.15" />
+    </filter>
+  </defs>
+  <!-- Perforated edges border -->
+  <rect x="5" y="5" width="90" height="110" fill="#f5ede3" stroke="#8c7863" stroke-width="1" stroke-dasharray="3,3" filter="url(#stampShadow)" />
+  <rect x="12" y="12" width="76" height="96" fill="#e8dacb" stroke="#75614e" stroke-width="0.75" />
+  
+  <circle cx="50" cy="50" r="26" fill="#c49b80" opacity="0.3" />
+  <path d="M50 38 C44 30 33 32 33 42 C33 52 46 60 50 64 C54 60 67 52 67 42 C67 32 56 30 50 38 Z" fill="#7a2e39" />
+  
+  <text x="50" y="86" font-family="serif" font-size="9" font-weight="bold" fill="#5c202a" text-anchor="middle" letter-spacing="1">FOREVER</text>
+  <text x="50" y="98" font-family="sans-serif" font-size="6" fill="#75614e" text-anchor="middle" letter-spacing="0.5">USA • 2026</text>
+</svg>

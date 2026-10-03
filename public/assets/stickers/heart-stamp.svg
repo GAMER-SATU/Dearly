@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120" fill="none">
+  <circle cx="60" cy="60" r="50" stroke="#9e2a2b" stroke-width="2.5" stroke-dasharray="5 3" opacity="0.85" />
+  <circle cx="60" cy="60" r="42" stroke="#9e2a2b" stroke-width="1.2" opacity="0.65" />
+  <path d="M60 42 C54 32 40 34 40 47 C40 60 55 70 60 76 C65 70 80 60 80 47 C80 34 66 32 60 42 Z" fill="#9e2a2b" opacity="0.75" />
+  <text x="60" y="28" font-family="serif" font-size="7" fill="#9e2a2b" text-anchor="middle" letter-spacing="2" opacity="0.85">AIR MAIL • AIR MAIL</text>
+  <text x="60" y="98" font-family="serif" font-size="7" fill="#9e2a2b" text-anchor="middle" letter-spacing="1.5" opacity="0.85">SPECIAL DELIVERY</text>
+  <path d="M22 60 Q 30 55, 38 60 T 54 60" stroke="#9e2a2b" stroke-width="1.2" opacity="0.6" />
+  <path d="M66 60 Q 74 65, 82 60 T 98 60" stroke="#9e2a2b" stroke-width="1.2" opacity="0.6" />
+</svg>
