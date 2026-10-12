@@ -159,17 +159,57 @@ export const PageFlipMagazine: React.FC<PageFlipMagazineProps> = ({
     return () => window.removeEventListener("resize", calculateScale);
   }, [calculateScale]);
 
-  // Flip handlers
+  // Flip handlers with robust mobile portrait support and instant fallback
   const handlePrevPage = useCallback(() => {
-    if (pageFlipRef.current) {
-      pageFlipRef.current.flipPrev();
+    const pf = pageFlipRef.current;
+    if (!pf) return;
+
+    const initialPage = pf.getCurrentPageIndex();
+    if (initialPage <= 0) return;
+
+    try {
+      pf.flipPrev();
+    } catch (err) {
+      console.warn("flipPrev error, falling back to turnToPrevPage", err);
+      pf.turnToPrevPage();
     }
+
+    // Safety fallback: if after 120ms flipping state hasn't started or page hasn't turned,
+    // force turnToPrevPage() so the mobile user is NEVER stuck.
+    setTimeout(() => {
+      if (pageFlipRef.current) {
+        const state = (pageFlipRef.current as any).getState?.();
+        const current = pageFlipRef.current.getCurrentPageIndex();
+        if (current === initialPage && state !== "flipping") {
+          pageFlipRef.current.turnToPrevPage();
+        }
+      }
+    }, 120);
   }, []);
 
   const handleNextPage = useCallback(() => {
-    if (pageFlipRef.current) {
-      pageFlipRef.current.flipNext();
+    const pf = pageFlipRef.current;
+    if (!pf) return;
+
+    const initialPage = pf.getCurrentPageIndex();
+    if (initialPage >= 5) return;
+
+    try {
+      pf.flipNext();
+    } catch (err) {
+      console.warn("flipNext error, falling back to turnToNextPage", err);
+      pf.turnToNextPage();
     }
+
+    setTimeout(() => {
+      if (pageFlipRef.current) {
+        const state = (pageFlipRef.current as any).getState?.();
+        const current = pageFlipRef.current.getCurrentPageIndex();
+        if (current === initialPage && state !== "flipping") {
+          pageFlipRef.current.turnToNextPage();
+        }
+      }
+    }, 120);
   }, []);
 
   // Touch swipe support on mobile screens for natural thumb-flipping
@@ -270,7 +310,46 @@ export const PageFlipMagazine: React.FC<PageFlipMagazineProps> = ({
 
       pageFlipInstance.loadFromHTML(pageElements);
       pageFlipRef.current = pageFlipInstance;
+
+      // Fix StPageFlip Issue #29 & portrait mode backwards navigation:
+      // In StPageFlip, flipPrev() hardcodes { x: 10, y: ... } without taking this.render.getRect().left into account.
+      // In single-page/portrait mode (usePortrait: true), rect.left is negative (-pageWidth), so (10 - rect.left)
+      // lands in the center of the book instead of the corner. When disableFlipByClick is true, isPointOnCorners()
+      // returns false and flipPrev() silently aborts.
+      // We monkey-patch flipPrev on both flipController and the instance to properly include rect.left and rect.top.
+      const flipController = (pageFlipInstance as any).getFlipController?.();
+      if (flipController) {
+        flipController.flipPrev = function (corner: string = "top") {
+          const rect = this.render.getRect();
+          this.flip({
+            x: rect.left + 10,
+            y: corner === "top" ? rect.top + 1 : rect.top + rect.height - 2,
+          });
+        };
+      }
+
+      const origFlipPrev = pageFlipInstance.flipPrev.bind(pageFlipInstance);
+      pageFlipInstance.flipPrev = function (corner: any = "top") {
+        if (flipController) {
+          const rect = flipController.render.getRect();
+          flipController.flip({
+            x: rect.left + 10,
+            y: corner === "top" ? rect.top + 1 : rect.top + rect.height - 2,
+          });
+        } else {
+          origFlipPrev(corner);
+        }
+      };
+
       setIsBookReady(true);
+
+      pageFlipInstance.on("init", (e: unknown) => {
+        const eventData = e as { data?: { page?: number } };
+        if (typeof eventData?.data?.page === "number") {
+          currentPageRef.current = eventData.data.page;
+          setActivePageIndex(eventData.data.page);
+        }
+      });
 
       pageFlipInstance.on("flip", (e: unknown) => {
         const eventData = e as { data: number };
@@ -313,6 +392,11 @@ export const PageFlipMagazine: React.FC<PageFlipMagazineProps> = ({
           setActivePageIndex(currentPage);
         } catch (err) {
           console.warn("Could not flip to page:", currentPage, err);
+          try {
+            pageFlipRef.current.turnToPage(currentPage);
+          } catch {
+            // ignore
+          }
         }
       }
     }
@@ -447,11 +531,36 @@ export const PageFlipMagazine: React.FC<PageFlipMagazineProps> = ({
       <div
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
-        className="w-full flex flex-col items-center justify-center overflow-visible touch-pan-y"
+        className="relative w-full flex flex-col items-center justify-center overflow-visible touch-pan-y"
         style={{
           height: `${PAGE_HEIGHT * scale}px`,
         }}
       >
+        {/* Mobile floating side arrow buttons for direct 1-tap thumb navigation */}
+        {!isClosedCover && (
+          <button
+            type="button"
+            onClick={handlePrevPage}
+            className="flex md:hidden absolute left-1 sm:left-2 top-1/2 -translate-y-1/2 z-40 w-10 h-10 rounded-full bg-[#fdfbf7]/95 hover:bg-white text-[#581620] border border-[#d4af37]/60 shadow-lg items-center justify-center active:scale-90 transition-all cursor-pointer backdrop-blur-xs touch-manipulation"
+            title="Previous Page"
+            aria-label="Previous Page"
+          >
+            <ChevronLeft className="w-6 h-6" />
+          </button>
+        )}
+
+        {!isBackCover && (
+          <button
+            type="button"
+            onClick={handleNextPage}
+            className="flex md:hidden absolute right-1 sm:right-2 top-1/2 -translate-y-1/2 z-40 w-10 h-10 rounded-full bg-[#fdfbf7]/95 hover:bg-white text-[#581620] border border-[#d4af37]/60 shadow-lg items-center justify-center active:scale-90 transition-all cursor-pointer backdrop-blur-xs touch-manipulation"
+            title="Next Page"
+            aria-label="Next Page"
+          >
+            <ChevronRight className="w-6 h-6" />
+          </button>
+        )}
+
         {/* Book Container with CSS scale */}
         <div
           className="relative flex items-center justify-center transition-transform duration-300 origin-center shrink-0"
@@ -466,7 +575,7 @@ export const PageFlipMagazine: React.FC<PageFlipMagazineProps> = ({
             <button
               type="button"
               onClick={handlePrevPage}
-              className="hidden md:flex absolute -left-16 sm:-left-20 md:-left-24 top-1/2 -translate-y-1/2 z-40 w-12 h-12 rounded-full bg-[#fdfbf7]/95 hover:bg-white text-[#581620] border border-[#d4af37]/50 shadow-xl items-center justify-center transition-all hover:scale-110 active:scale-95 cursor-pointer"
+              className="hidden md:flex absolute -left-16 sm:-left-20 md:-left-24 top-1/2 -translate-y-1/2 z-40 w-12 h-12 rounded-full bg-[#fdfbf7]/95 hover:bg-white text-[#581620] border border-[#d4af37]/50 shadow-xl items-center justify-center transition-all hover:scale-110 active:scale-95 cursor-pointer touch-manipulation"
               title="Previous Page (or Left Arrow Key ←)"
               aria-label="Previous Page"
             >
@@ -478,7 +587,7 @@ export const PageFlipMagazine: React.FC<PageFlipMagazineProps> = ({
             <button
               type="button"
               onClick={handleNextPage}
-              className="hidden md:flex absolute -right-16 sm:-right-20 md:-right-24 top-1/2 -translate-y-1/2 z-40 w-12 h-12 rounded-full bg-[#fdfbf7]/95 hover:bg-white text-[#581620] border border-[#d4af37]/50 shadow-xl items-center justify-center transition-all hover:scale-110 active:scale-95 cursor-pointer"
+              className="hidden md:flex absolute -right-16 sm:-right-20 md:-right-24 top-1/2 -translate-y-1/2 z-40 w-12 h-12 rounded-full bg-[#fdfbf7]/95 hover:bg-white text-[#581620] border border-[#d4af37]/50 shadow-xl items-center justify-center transition-all hover:scale-110 active:scale-95 cursor-pointer touch-manipulation"
               title="Next Page (or Right Arrow Key →)"
               aria-label="Next Page"
             >
@@ -504,16 +613,12 @@ export const PageFlipMagazine: React.FC<PageFlipMagazineProps> = ({
             }}
           />
 
-          {/* Interactive Draggable Stickers Layer for Visible Pages */}
+          {/* Interactive Draggable Stickers Layer & Header Edit Controls for Visible Pages */}
           {isBookReady && (
             <div
               className="absolute top-0 pointer-events-none z-30 transition-transform duration-500 ease-in-out"
               style={{
-                width: isMobile
-                  ? `${PAGE_WIDTH}px`
-                  : isClosedCover || isBackCover
-                  ? `${PAGE_WIDTH}px`
-                  : `${spreadWidth}px`,
+                width: isMobile ? `${PAGE_WIDTH}px` : `${spreadWidth}px`,
                 height: `${PAGE_HEIGHT}px`,
                 transform: isMobile
                   ? "translateX(0px)"
@@ -527,18 +632,22 @@ export const PageFlipMagazine: React.FC<PageFlipMagazineProps> = ({
               {isMobile ? (
                 /* SINGLE-PAGE MOBILE VIEW: Overlay directly for current active page */
                 <div
-                  className="relative overflow-hidden"
+                  className="relative overflow-hidden w-full h-full"
                   style={{ width: `${PAGE_WIDTH}px`, height: `${PAGE_HEIGHT}px` }}
                 >
                   <DraggableStickersLayer pageIndex={activePageIndex} readOnly={isReadOnly} />
                   {!isReadOnly && (
-                    <div className="absolute top-3 left-6 z-40">
+                    <div className="absolute top-3.5 left-1/2 -translate-x-1/2 z-40">
                       <button
                         type="button"
                         onClick={() => openPageHeadersEditor(activePageIndex)}
-                        className="pointer-events-auto px-2.5 py-1 rounded-full bg-[#1f060a]/80 hover:bg-[#340c14] text-[#f5d574] text-[11px] font-serif-dearly border border-[#d4af37]/40 shadow-md backdrop-blur-xs flex items-center gap-1.5 transition-all cursor-pointer opacity-85 hover:opacity-100 hover:scale-105"
+                        className={`pointer-events-auto px-3.5 py-1.5 rounded-full ${
+                          activePageIndex === 0 || activePageIndex === 5
+                            ? "bg-[#1f060a]/90 hover:bg-[#340c14] text-[#f5d574] border-[#d4af37]/50"
+                            : "bg-[#fdfbf6]/95 hover:bg-[#fff] text-[#581620] border-[#d4af37]/60"
+                        } text-xs font-serif-dearly border shadow-md backdrop-blur-xs flex items-center gap-1.5 transition-all cursor-pointer opacity-95 hover:opacity-100 hover:scale-105 active:scale-95`}
                       >
-                        <Pencil className="w-2.5 h-2.5" />
+                        <Pencil className="w-3 h-3" />
                         <span>
                           {activePageIndex === 0
                             ? "Edit Cover Title"
@@ -557,42 +666,42 @@ export const PageFlipMagazine: React.FC<PageFlipMagazineProps> = ({
                   )}
                 </div>
               ) : isClosedCover ? (
-                /* DESKTOP: Closed Cover */
+                /* DESKTOP: Closed Cover (Right half of the 1100px spread, perfectly aligned with the front cover) */
                 <div
-                  className="relative overflow-hidden"
+                  className="absolute top-0 right-0 overflow-hidden"
                   style={{ width: `${PAGE_WIDTH}px`, height: `${PAGE_HEIGHT}px` }}
                 >
                   <DraggableStickersLayer pageIndex={0} readOnly={isReadOnly} />
                   {!isReadOnly && (
-                    <div className="absolute top-4 left-6 z-40">
+                    <div className="absolute top-4 left-1/2 -translate-x-1/2 z-40">
                       <button
                         type="button"
                         onClick={() => openPageHeadersEditor(0)}
-                        className="pointer-events-auto px-2.5 py-1 rounded-full bg-[#1f060a]/80 hover:bg-[#340c14] text-[#f5d574] text-[11px] font-serif-dearly border border-[#d4af37]/40 shadow-md backdrop-blur-xs flex items-center gap-1.5 transition-all cursor-pointer opacity-75 hover:opacity-100 hover:scale-105"
-                        title="Edit Cover Title & Subtitle"
+                        className="pointer-events-auto px-3.5 py-1.5 rounded-full bg-[#1f060a]/90 hover:bg-[#340c14] text-[#f5d574] text-xs font-serif-dearly border border-[#d4af37]/50 shadow-lg backdrop-blur-xs flex items-center gap-1.5 transition-all cursor-pointer opacity-90 hover:opacity-100 hover:scale-105 active:scale-95"
+                        title="Edit Cover Title & Details"
                       >
-                        <Pencil className="w-2.5 h-2.5" />
+                        <Pencil className="w-3 h-3 text-[#f5d574]" />
                         <span>Edit Cover Title</span>
                       </button>
                     </div>
                   )}
                 </div>
               ) : isBackCover ? (
-                /* DESKTOP: Back Cover */
+                /* DESKTOP: Back Cover (Left half of the 1100px spread, perfectly aligned with the back cover) */
                 <div
-                  className="relative overflow-hidden"
+                  className="absolute top-0 left-0 overflow-hidden"
                   style={{ width: `${PAGE_WIDTH}px`, height: `${PAGE_HEIGHT}px` }}
                 >
                   <DraggableStickersLayer pageIndex={5} readOnly={isReadOnly} />
                   {!isReadOnly && (
-                    <div className="absolute top-4 right-8 z-40">
+                    <div className="absolute top-4 left-1/2 -translate-x-1/2 z-40">
                       <button
                         type="button"
                         onClick={() => openPageHeadersEditor(5)}
-                        className="pointer-events-auto px-2.5 py-1 rounded-full bg-[#1f060a]/80 hover:bg-[#340c14] text-[#f5d574] text-[11px] font-serif-dearly border border-[#d4af37]/40 shadow-md backdrop-blur-xs flex items-center gap-1.5 transition-all cursor-pointer opacity-75 hover:opacity-100 hover:scale-105"
+                        className="pointer-events-auto px-3.5 py-1.5 rounded-full bg-[#1f060a]/90 hover:bg-[#340c14] text-[#f5d574] text-xs font-serif-dearly border border-[#d4af37]/50 shadow-lg backdrop-blur-xs flex items-center gap-1.5 transition-all cursor-pointer opacity-90 hover:opacity-100 hover:scale-105 active:scale-95"
                         title="Edit Closing Note & Signature"
                       >
-                        <Pencil className="w-2.5 h-2.5" />
+                        <Pencil className="w-3 h-3 text-[#f5d574]" />
                         <span>Edit Closing Note</span>
                       </button>
                     </div>
@@ -601,7 +710,7 @@ export const PageFlipMagazine: React.FC<PageFlipMagazineProps> = ({
               ) : (
                 /* DESKTOP: Inside 2-Page Spread */
                 <div
-                  className="relative overflow-hidden pointer-events-none"
+                  className="relative w-full h-full overflow-hidden pointer-events-none"
                   style={{ width: `${spreadWidth}px`, height: `${PAGE_HEIGHT}px` }}
                 >
                   <DraggableStickersLayer
@@ -613,33 +722,31 @@ export const PageFlipMagazine: React.FC<PageFlipMagazineProps> = ({
 
                   {!isReadOnly && (
                     <>
-                      {/* Left Page Edit Header Button */}
-                      <div className="absolute top-3 left-12 z-40">
+                      {/* Left Page Edit Header Button (Page 1 or 3) */}
+                      <div className="absolute top-3.5 left-12 z-40">
                         <button
                           type="button"
                           onClick={() => openPageHeadersEditor(activePageIndex <= 2 ? 1 : 3)}
-                          className="pointer-events-auto px-2.5 py-1 rounded-full bg-[#fdfbf6]/90 hover:bg-[#fff] text-[#581620] text-[11px] font-serif-dearly border border-[#d4af37]/50 shadow-sm backdrop-blur-xs flex items-center gap-1.5 transition-all cursor-pointer opacity-75 hover:opacity-100 hover:scale-105"
+                          className="pointer-events-auto px-3 py-1.5 rounded-full bg-[#fdfbf6]/95 hover:bg-[#fff] text-[#581620] text-xs font-serif-dearly border border-[#d4af37]/60 shadow-md backdrop-blur-xs flex items-center gap-1.5 transition-all cursor-pointer opacity-90 hover:opacity-100 hover:scale-105 active:scale-95"
                           title={activePageIndex <= 2 ? "Edit Memory Page Title & Text" : "Edit Our Story Title & Text"}
                         >
-                          <Pencil className="w-2.5 h-2.5 text-[#9e2a2b]" />
+                          <Pencil className="w-3 h-3 text-[#9e2a2b]" />
                           <span>{activePageIndex <= 2 ? "Edit Headline & Story" : "Edit Story Title & Note"}</span>
                         </button>
                       </div>
 
-                      {/* Right Page Edit Header Button */}
-                      {activePageIndex <= 2 && (
-                        <div className="absolute top-3 right-12 z-40">
-                          <button
-                            type="button"
-                            onClick={() => openPageHeadersEditor(2)}
-                            className="pointer-events-auto px-2.5 py-1 rounded-full bg-[#fdfbf6]/90 hover:bg-[#fff] text-[#581620] text-[11px] font-serif-dearly border border-[#d4af37]/50 shadow-sm backdrop-blur-xs flex items-center gap-1.5 transition-all cursor-pointer opacity-75 hover:opacity-100 hover:scale-105"
-                            title="Edit Photobooth Strip Title & Note"
-                          >
-                            <Pencil className="w-2.5 h-2.5 text-[#9e2a2b]" />
-                            <span>Edit Strip Title</span>
-                          </button>
-                        </div>
-                      )}
+                      {/* Right Page Edit Header Button (Page 2 or 4) */}
+                      <div className="absolute top-3.5 right-12 z-40">
+                        <button
+                          type="button"
+                          onClick={() => openPageHeadersEditor(activePageIndex <= 2 ? 2 : 4)}
+                          className="pointer-events-auto px-3 py-1.5 rounded-full bg-[#fdfbf6]/95 hover:bg-[#fff] text-[#581620] text-xs font-serif-dearly border border-[#d4af37]/60 shadow-md backdrop-blur-xs flex items-center gap-1.5 transition-all cursor-pointer opacity-90 hover:opacity-100 hover:scale-105 active:scale-95"
+                          title={activePageIndex <= 2 ? "Edit Photobooth Strip Title & Note" : "Edit Keepsake Note"}
+                        >
+                          <Pencil className="w-3 h-3 text-[#9e2a2b]" />
+                          <span>{activePageIndex <= 2 ? "Edit Strip Title" : "Edit Keepsake"}</span>
+                        </button>
+                      </div>
                     </>
                   )}
                 </div>
@@ -654,8 +761,8 @@ export const PageFlipMagazine: React.FC<PageFlipMagazineProps> = ({
         <button
           type="button"
           onClick={handlePrevPage}
-          disabled={activePageIndex === 0}
-          className="flex items-center gap-1 px-3.5 py-1.5 rounded-full bg-[#fdfbf7] text-[#581620] border border-[#d4af37]/50 text-xs font-serif-dearly font-medium shadow-xs disabled:opacity-30 disabled:pointer-events-none active:scale-95 transition-all cursor-pointer"
+          disabled={activePageIndex <= 0}
+          className="flex items-center gap-1 px-3.5 py-1.5 rounded-full bg-[#fdfbf7] text-[#581620] border border-[#d4af37]/50 text-xs font-serif-dearly font-medium shadow-xs disabled:opacity-30 disabled:pointer-events-none active:scale-95 transition-all cursor-pointer touch-manipulation"
           aria-label="Previous Page"
         >
           <ChevronLeft className="w-4 h-4" />
@@ -680,7 +787,7 @@ export const PageFlipMagazine: React.FC<PageFlipMagazineProps> = ({
           type="button"
           onClick={handleNextPage}
           disabled={activePageIndex >= 5}
-          className="flex items-center gap-1 px-3.5 py-1.5 rounded-full bg-[#fdfbf7] text-[#581620] border border-[#d4af37]/50 text-xs font-serif-dearly font-medium shadow-xs disabled:opacity-30 disabled:pointer-events-none active:scale-95 transition-all cursor-pointer"
+          className="flex items-center gap-1 px-3.5 py-1.5 rounded-full bg-[#fdfbf7] text-[#581620] border border-[#d4af37]/50 text-xs font-serif-dearly font-medium shadow-xs disabled:opacity-30 disabled:pointer-events-none active:scale-95 transition-all cursor-pointer touch-manipulation"
           aria-label="Next Page"
         >
           <span>Next</span>
@@ -904,8 +1011,8 @@ export const PageFlipMagazine: React.FC<PageFlipMagazineProps> = ({
               <button
                 type="button"
                 onClick={handlePrevPage}
-                disabled={isClosedCover}
-                className="flex items-center gap-1.5 px-5 sm:px-6 py-2 rounded-full bg-[#fdfbf7] hover:bg-[#fff] text-[#581620] text-xs sm:text-sm font-serif-dearly tracking-wide border border-[#b8a38b] shadow-[0_2px_8px_rgba(0,0,0,0.12)] transition-all cursor-pointer hover:scale-105 active:scale-95 font-medium min-h-[38px] disabled:opacity-40 disabled:pointer-events-none"
+                disabled={activePageIndex <= 0}
+                className="flex items-center gap-1.5 px-5 sm:px-6 py-2 rounded-full bg-[#fdfbf7] hover:bg-[#fff] text-[#581620] text-xs sm:text-sm font-serif-dearly tracking-wide border border-[#b8a38b] shadow-[0_2px_8px_rgba(0,0,0,0.12)] transition-all cursor-pointer hover:scale-105 active:scale-95 font-medium min-h-[38px] disabled:opacity-40 disabled:pointer-events-none touch-manipulation"
               >
                 <ChevronLeft className="w-4 h-4" />
                 <span>Previous Page</span>
@@ -914,8 +1021,8 @@ export const PageFlipMagazine: React.FC<PageFlipMagazineProps> = ({
               <button
                 type="button"
                 onClick={handleNextPage}
-                disabled={isBackCover}
-                className="flex items-center gap-1.5 px-5 sm:px-6 py-2 rounded-full bg-[#fdfbf7] hover:bg-[#fff] text-[#581620] text-xs sm:text-sm font-serif-dearly tracking-wide border border-[#b8a38b] shadow-[0_2px_8px_rgba(0,0,0,0.12)] transition-all cursor-pointer hover:scale-105 active:scale-95 font-medium min-h-[38px] disabled:opacity-40 disabled:pointer-events-none"
+                disabled={activePageIndex >= 5}
+                className="flex items-center gap-1.5 px-5 sm:px-6 py-2 rounded-full bg-[#fdfbf7] hover:bg-[#fff] text-[#581620] text-xs sm:text-sm font-serif-dearly tracking-wide border border-[#b8a38b] shadow-[0_2px_8px_rgba(0,0,0,0.12)] transition-all cursor-pointer hover:scale-105 active:scale-95 font-medium min-h-[38px] disabled:opacity-40 disabled:pointer-events-none touch-manipulation"
               >
                 <span>Next Page</span>
                 <ChevronRight className="w-4 h-4" />
